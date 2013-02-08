@@ -17,6 +17,7 @@
 
 App::uses('CakeMigration', 'Migrations.Lib');
 App::uses('ConnectionManager', 'Model');
+App::uses('ClassRegistry', 'Utility');
 App::uses('Inflector', 'Utility');
 App::uses('Folder', 'Utility');
 
@@ -259,14 +260,14 @@ class MigrationVersion {
 		if ($direction == 'down') {
 			krsort($mapping);
 		}
-		
+
 		foreach ($mapping as $version => $info) {
 			if (($direction == 'up' && $version > $targetVersion)
 				|| ($direction == 'down' && $version < $targetVersion)) {
 				break;
 			} else if (($direction == 'up' && $info['migrated'] === null)
 				|| ($direction == 'down' && $info['migrated'] !== null)) {
-				
+
 				$migration = $this->getMigration($info['name'], $info['class'], $info['type'], $options);
 				$migration->Version = $this;
 				$migration->info = $info;
@@ -274,18 +275,18 @@ class MigrationVersion {
 					$result = $migration->run($direction, $options);
 				} catch (Exception $exception){
 					if (!isset($options['reset'])) {
-						$this->resetMigration($options['type']);  
+						$this->resetMigration($options['type']);
 						$this->setVersion($version, $info['type'], false);
 						$this->restoreMigration($latestVersion, $options['type']);
 						if ($latestVersion > 0) {
 							$mapping = $this->getMapping($options['type']);
 							$latestVersionName = '#' . number_format($mapping[$latestVersion]['version'] / 100, 2, '', '') . ' ' . $mapping[$latestVersion]['name'];
 							$errorMessage = __d('migrations', sprintf("There was an error during a migration. \n The error was: '%s' \n Migration will be reset to 0 and then moved up to version '%s' ", $exception->getMessage(), $latestVersionName));
-							return $errorMessage;	
+							return $errorMessage;
 						} else{
 							throw $exception;
 						}
-					}	
+					}
 				}
 				$this->setVersion($version, $info['type'], ($direction == 'up'));
 			}
@@ -304,11 +305,11 @@ class MigrationVersion {
 		$options['version'] = 0;
 		$options['reset'] = true;
 		$options['direction'] = 'down';
-		$this->run($options); 
+		$this->run($options);
 	}
 
 /**
-* Runs migration to the last well known version defined by $toVersion. 
+* Runs migration to the last well known version defined by $toVersion.
 * @param $toVersion string name of the version where the migration will run up to.
 * @param $type string type of migration being ran.
 * @return void
@@ -320,7 +321,7 @@ class MigrationVersion {
 		$this->run($options);
 	}
 
-	
+
 /**
  * Initialize the migrations schema and keep it up-to-date
  *
